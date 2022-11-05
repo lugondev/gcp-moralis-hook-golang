@@ -27,3 +27,6 @@ build:
 
 dev: build
 	./build/server-local
+
+server:
+	go run main.go
