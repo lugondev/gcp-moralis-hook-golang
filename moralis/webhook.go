@@ -3,7 +3,6 @@ package moralis
 import (
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"moralis-webhook/chains"
 	"moralis-webhook/email"
 	"moralis-webhook/email/template"
 	"moralis-webhook/eth"
@@ -21,8 +20,14 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 			fmt.Printf("unable to bind payload: %v\n", err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		chain, err := chains.GetChainInfo(payload.ChainId)
+		if payload.ChainId == "" {
+			fmt.Println("chainId is empty")
+			return c.JSON(http.StatusOK, payload)
+		}
+
+		chain, err := eth.GetChainInfoByHexId(payload.ChainId)
 		if err != nil {
+			fmt.Printf("unable to get chain data: %v\n", err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		recipient := email.Recipient{Name: "Test Receiver", Email: "lugon@alphatrue.com"}
@@ -59,8 +64,8 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 						Recipient:   recipient,
 						HtmlContent: template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo),
 						TextContent: template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo),
-						CCs:         &[]email.Recipient{
-							//{Name: "Quyn", Email: "quyen@alphatrue.com"},
+						CCs: &[]email.Recipient{
+							{Name: "Truong PD", Email: "truongpd@alphatrue.com"},
 							//{Name: "Toan", Email: "toan@alphatrue.com"},
 						},
 					}

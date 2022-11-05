@@ -7,6 +7,7 @@ import (
 	"log"
 	"moralis-webhook/email/factory"
 	"moralis-webhook/email/sendgrid"
+	"moralis-webhook/eth"
 	"moralis-webhook/moralis"
 	"net/http"
 )
@@ -45,6 +46,15 @@ func main() {
 		return c.String(http.StatusOK, fmt.Sprintf("GIT log: %s\n", GitCommitLog))
 	})
 	e.POST("/webhook-multisig/:contract", moralis.Hook(emailClient))
+	e.POST("/chain/:chainId", func(c echo.Context) error {
+		chainId := c.Param("chainId")
+		chain, err := eth.GetChainInfoByChainId(chainId)
+		if err != nil {
+			fmt.Println("cannot get chain info:", err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		return c.JSON(http.StatusOK, chain)
+	})
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8080"))

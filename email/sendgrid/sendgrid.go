@@ -31,8 +31,8 @@ func (c *sendgridClient) Send(message email.Message) error {
 	personalization := mail.NewPersonalization()
 	personalization.AddTos(to)
 	if message.CCs != nil && len(*message.CCs) > 0 {
-		for _, bcc := range *message.CCs {
-			personalization.AddBCCs(mail.NewEmail(bcc.Name, bcc.Email))
+		for _, cc := range *message.CCs {
+			personalization.AddCCs(mail.NewEmail(cc.Name, cc.Email))
 		}
 	}
 	m.SetFrom(from)

@@ -4,13 +4,18 @@
 FROM debian:buster-slim
 RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* \
 
+WORKDIR /app
 # Copy the binary to the production image from the builder stage.
-COPY ./build/server /app/server
+COPY ./email/template ./email/template
+COPY ./chains ./chains
+COPY ./build/server ./server
 
+#RUN ls -alh .
 # Run the web service on container startup.
-CMD ["/app/server"]
+
+CMD ["./server"]
 
 # [END run_helloworld_dockerfile]
 # [END cloudrun_helloworld_dockerfile]

@@ -16,7 +16,7 @@ const (
 )
 
 func GenerateEmail(temp EmailTemplate, itf interface{}, interfaces ...interface{}) string {
-	tmpl := template.Must(template.ParseFiles(fmt.Sprintf("email/template/%s.html", temp)))
+	tmpl := template.Must(template.ParseFiles(fmt.Sprintf("./email/template/%s.html", temp)))
 	var tpl bytes.Buffer
 	data := toMap(itf)
 	for _, itf := range interfaces {

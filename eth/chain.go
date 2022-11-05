@@ -1,4 +1,4 @@
-package chains
+package eth
 
 import (
 	"encoding/json"
@@ -41,8 +41,21 @@ func hexToChainId(hex string) int64 {
 	return decodeBig.Int64()
 }
 
-func GetChainInfo(hexId string) (*Chain, error) {
-	dat, err := os.ReadFile(fmt.Sprintf("chains/eip155-%d.json", hexToChainId(hexId)))
+func GetChainInfoByHexId(hexId string) (*Chain, error) {
+	dat, err := os.ReadFile(fmt.Sprintf("./chains/eip155-%d.json", hexToChainId(hexId)))
+	if err != nil {
+		return nil, err
+	}
+	var chain Chain
+
+	if err := json.Unmarshal(dat, &chain); err != nil {
+		return nil, err
+	}
+	return &chain, nil
+}
+
+func GetChainInfoByChainId(chainId string) (*Chain, error) {
+	dat, err := os.ReadFile(fmt.Sprintf("./chains/eip155-%s.json", chainId))
 	if err != nil {
 		return nil, err
 	}

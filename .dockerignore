@@ -12,3 +12,6 @@
 # Exclude git history and configuration.
 .git
 .gitignore
+
+#ignore all .go file
+**/*.go
