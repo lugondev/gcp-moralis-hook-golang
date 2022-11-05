@@ -1,6 +1,7 @@
 package sendgrid
 
 import (
+	"fmt"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"log"
@@ -32,6 +33,7 @@ func (c *sendgridClient) Send(message email.Message) error {
 	personalization.AddTos(to)
 	if message.CCs != nil && len(*message.CCs) > 0 {
 		for _, cc := range *message.CCs {
+			fmt.Println("CC: ", cc)
 			personalization.AddCCs(mail.NewEmail(cc.Name, cc.Email))
 		}
 	}

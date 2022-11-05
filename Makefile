@@ -12,9 +12,10 @@ all: build-linux deploy clean
 
 build-linux:
 	echo "current commit: ${GIT_COMMIT_LOG}"
+	go mod tidy
 	env GOOS=linux GOARCH=amd64 go build -v -o ./build/server -ldflags "-X 'main.GitCommitLog=${GIT_COMMIT_LOG}'"
 
-deploy: build-linux
+deploy: clean build-linux
 	gcloud run deploy --source . --region asia-southeast1 --project ${GCP_PROJECT}; \
 	echo "Done deploy."
 

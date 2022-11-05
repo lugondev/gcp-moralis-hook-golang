@@ -30,7 +30,11 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 			fmt.Printf("unable to get chain data: %v\n", err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		recipient := email.Recipient{Name: "Test Receiver", Email: "lugon@alphatrue.com"}
+		recipient := email.Recipient{Name: "User", Email: "lugon@alphatrue.com"}
+		listCCs := []email.Recipient{
+			{Name: "TruongPD", Email: "truongpd@alphatrue.com"},
+			{Name: "ToanVTT", Email: "toan@alphatrue.com"},
+		}
 
 		if !payload.Confirmed {
 			i, _ := strconv.ParseInt(payload.Block.Timestamp, 10, 64)
@@ -64,10 +68,7 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 						Recipient:   recipient,
 						HtmlContent: template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo),
 						TextContent: template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo),
-						CCs: &[]email.Recipient{
-							{Name: "Truong PD", Email: "truongpd@alphatrue.com"},
-							//{Name: "Toan", Email: "toan@alphatrue.com"},
-						},
+						CCs:         &listCCs,
 					}
 
 					if err := emailClient.Send(message); err != nil {
@@ -98,10 +99,7 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 						Recipient:   recipient,
 						HtmlContent: template.GenerateEmail(template.TransactionDetail, emailInfo, txInfo, inputDecoded),
 						TextContent: template.GenerateEmail(template.TransactionDetail, emailInfo, txInfo, inputDecoded),
-						CCs:         &[]email.Recipient{
-							//{Name: "Quyn", Email: "quyen@alphatrue.com"},
-							//{Name: "Toan", Email: "toan@alphatrue.com"},
-						},
+						CCs:         &listCCs,
 					}
 
 					if err := emailClient.Send(message); err != nil {
