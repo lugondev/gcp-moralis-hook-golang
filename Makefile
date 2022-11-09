@@ -31,3 +31,12 @@ dev: build
 
 server:
 	go run main.go
+
+migrate-up:
+	migrate -path db/migration -database "$(DB_URL)" -verbose up
+
+migrate-down:
+	migrate -path db/migration -database "$(DB_URL)" -verbose down
+
+sqlc:
+	sqlc generate

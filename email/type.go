@@ -2,6 +2,7 @@ package email
 
 type Client interface {
 	Send(message Message) error
+	SendMultiple(recipients []Recipient, message Message) error
 }
 
 type Sender struct {
@@ -17,6 +18,7 @@ type Recipient struct {
 type Message struct {
 	Sender      Sender
 	Recipient   Recipient
+	Recipients  *[]Recipient
 	Subject     string
 	HtmlContent string
 	TextContent string

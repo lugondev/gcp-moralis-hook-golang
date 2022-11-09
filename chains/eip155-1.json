@@ -3,10 +3,15 @@
   "chain": "ETH",
   "icon": "ethereum",
   "rpc": [
-    "https://mainnet.infura.io/v3/${INFURA_API_KEY}",
-    "wss://mainnet.infura.io/ws/v3/${INFURA_API_KEY}",
+    "https://eth-mainnet.public.blastapi.io",
+    "https://rpc.ankr.com/eth",
+    "https://eth-rpc.gateway.pokt.network",
+    "https://eth-mainnet.gateway.pokt.network/v1/5f3453978e354ab992c4da79",
+    "https://ethereum-rpc.trustwalletapp.com",
+    "https://main-light.eth.linkpool.io",
+    "https://rpc.flashbots.net",
     "https://api.mycryptoapi.com/eth",
-    "https://cloudflare-eth.com"
+    "https://main-rpc.linkpool.io"
   ],
   "faucets": [],
   "nativeCurrency": {

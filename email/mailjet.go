@@ -1,18 +1,17 @@
-package mailjet
+package email
 
 import (
 	"github.com/mailjet/mailjet-apiv3-go"
 	"log"
-	"moralis-webhook/email"
 )
 
-type Config struct {
+type MailjetConfig struct {
 	Debug      bool
 	PublicKey  string
 	PrivateKey string
 }
 
-func New(configuration Config) email.Client {
+func NewMailjet(configuration MailjetConfig) Client {
 	client := mailjet.NewMailjetClient(configuration.PublicKey, configuration.PrivateKey)
 
 	return &mailjetClient{client: client, debug: configuration.Debug}
@@ -23,7 +22,11 @@ type mailjetClient struct {
 	debug  bool
 }
 
-func (c *mailjetClient) Send(message email.Message) error {
+func (c *mailjetClient) SendMultiple(recipients []Recipient, message Message) error {
+	return nil
+}
+
+func (c *mailjetClient) Send(message Message) error {
 	info := []mailjet.InfoMessagesV31{
 		{
 			From: &mailjet.RecipientV31{

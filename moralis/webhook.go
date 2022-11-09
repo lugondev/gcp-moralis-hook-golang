@@ -30,10 +30,9 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 			fmt.Printf("unable to get chain data: %v\n", err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		recipient := email.Recipient{Name: "User", Email: "lugon@alphatrue.com"}
-		listCCs := []email.Recipient{
-			{Name: "TruongPD", Email: "truongpd@alphatrue.com"},
-			{Name: "ToanVTT", Email: "toan@alphatrue.com"},
+		listRecipients := []email.Recipient{
+			{Name: "Lugon", Email: "lugon@alphatrue.com"},
+			{Name: "Dev", Email: "lugondev@gmail.com"},
 		}
 
 		if !payload.Confirmed {
@@ -43,7 +42,7 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 			emailInfo := template.AppInfo{
 				Contract: contract,
 				Network:  chain.Name,
-				User:     recipient.Name,
+				User:     "Multisig User",
 				App:      payload.Tag,
 				Date:     tm.Format(time.UnixDate),
 			}
@@ -65,10 +64,9 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 					var message = email.Message{
 						Subject:     "Transaction Notification",
 						Sender:      email.Sender{Name: "Notifier", Email: "notifier@alphatrue.dev"},
-						Recipient:   recipient,
+						Recipient:   listRecipients[0],
 						HtmlContent: template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo),
 						TextContent: template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo),
-						CCs:         &listCCs,
 					}
 
 					if err := emailClient.Send(message); err != nil {
@@ -96,10 +94,9 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 					var message = email.Message{
 						Subject:     "Transaction Notification",
 						Sender:      email.Sender{Name: "Notifier", Email: "notifier@alphatrue.dev"},
-						Recipient:   recipient,
+						Recipient:   listRecipients[0],
 						HtmlContent: template.GenerateEmail(template.TransactionDetail, emailInfo, txInfo, inputDecoded),
 						TextContent: template.GenerateEmail(template.TransactionDetail, emailInfo, txInfo, inputDecoded),
-						CCs:         &listCCs,
 					}
 
 					if err := emailClient.Send(message); err != nil {

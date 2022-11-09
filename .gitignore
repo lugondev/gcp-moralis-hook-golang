@@ -27,3 +27,4 @@ build
 
 # environment variables
 .env
+configuration.yml

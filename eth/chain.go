@@ -1,11 +1,21 @@
 package eth
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/labstack/gommon/log"
 	"os"
 )
+
+type Explorer struct {
+	Name     string `json:"name"`
+	Url      string `json:"url"`
+	Standard string `json:"standard"`
+}
 
 type Chain struct {
 	Name           string        `json:"name"`
@@ -26,11 +36,7 @@ type Chain struct {
 	Ens       struct {
 		Registry string `json:"registry"`
 	} `json:"ens"`
-	Explorers []struct {
-		Name     string `json:"name"`
-		Url      string `json:"url"`
-		Standard string `json:"standard"`
-	} `json:"explorers"`
+	Explorers []Explorer `json:"explorers"`
 }
 
 func hexToChainId(hex string) int64 {
@@ -65,4 +71,20 @@ func GetChainInfoByChainId(chainId string) (*Chain, error) {
 		return nil, err
 	}
 	return &chain, nil
+}
+
+func IsContract(rpcUrl string, address common.Address) bool {
+	log.Infof("Rpc url:", rpcUrl)
+	dial, err := ethclient.Dial(rpcUrl)
+	if err != nil {
+		log.Errorf("ethclient.Dial err: %v \n", err)
+		return false
+	}
+	codeAt, err := dial.CodeAt(context.Background(), address, nil)
+	if err != nil {
+		log.Errorf("dial.CodeAt err: %v \n", err)
+		return false
+	}
+	fmt.Println("codeAt:", codeAt)
+	return len(codeAt) > 0
 }
