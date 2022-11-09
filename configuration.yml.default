@@ -27,10 +27,15 @@ auth:
 
 email:
   adapter: sendgrid
+  notifier: true
   sendgrid:
     debug: true
     apiKey:
+
 notifier:
-  adapter: slack
+  adapter: telegram
   slack:
     webhookUrl:
+  telegram:
+    apiToken:
+    chatId:
