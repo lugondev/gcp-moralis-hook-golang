@@ -1,8 +1,8 @@
 package moralis
 
 import (
-	"fmt"
 	"github.com/labstack/echo/v4"
+	"log"
 	"moralis-webhook/email"
 	"moralis-webhook/email/template"
 	"moralis-webhook/eth"
@@ -17,17 +17,17 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 
 		payload := new(Payload)
 		if err := c.Bind(payload); err != nil {
-			fmt.Printf("unable to bind payload: %v\n", err)
+			log.Printf("unable to bind payload: %v\n", err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		if payload.ChainId == "" {
-			fmt.Println("chainId is empty")
+			log.Println("chainId is empty")
 			return c.JSON(http.StatusOK, payload)
 		}
 
 		chain, err := eth.GetChainInfoByHexId(payload.ChainId)
 		if err != nil {
-			fmt.Printf("unable to get chain data: %v\n", err)
+			log.Printf("unable to get chain data: %v\n", err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		listRecipients := []email.Recipient{
@@ -39,6 +39,11 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 			i, _ := strconv.ParseInt(payload.Block.Timestamp, 10, 64)
 			tm := time.Unix(i, 0)
 
+			message := email.Message{
+				Subject:    "Transaction Notification",
+				Sender:     email.Sender{Name: "Notifier", Email: "notifier@alphatrue.dev"},
+				Recipients: &listRecipients,
+			}
 			emailInfo := template.AppInfo{
 				Contract: contract,
 				Network:  chain.Name,
@@ -61,13 +66,8 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 						TokenSymbol: transferEvent.TokenSymbol,
 					}
 
-					var message = email.Message{
-						Subject:     "Transaction Notification",
-						Sender:      email.Sender{Name: "Notifier", Email: "notifier@alphatrue.dev"},
-						Recipient:   listRecipients[0],
-						HtmlContent: template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo),
-						TextContent: template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo),
-					}
+					message.HtmlContent = template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo)
+					message.TextContent = template.GenerateEmail(template.TransactionToken, emailInfo, transferInfo)
 
 					if err := emailClient.Send(message); err != nil {
 						return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -89,15 +89,9 @@ func Hook(emailClient email.Client) func(c echo.Context) error {
 					if err != nil {
 						return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 					}
-					fmt.Println(inputDecoded)
 
-					var message = email.Message{
-						Subject:     "Transaction Notification",
-						Sender:      email.Sender{Name: "Notifier", Email: "notifier@alphatrue.dev"},
-						Recipient:   listRecipients[0],
-						HtmlContent: template.GenerateEmail(template.TransactionDetail, emailInfo, txInfo, inputDecoded),
-						TextContent: template.GenerateEmail(template.TransactionDetail, emailInfo, txInfo, inputDecoded),
-					}
+					message.HtmlContent = template.GenerateEmail(template.TransactionDetail, emailInfo, txInfo, inputDecoded)
+					message.TextContent = template.GenerateEmail(template.TransactionDetail, emailInfo, txInfo, inputDecoded)
 
 					if err := emailClient.Send(message); err != nil {
 						return echo.NewHTTPError(http.StatusBadRequest, err.Error())

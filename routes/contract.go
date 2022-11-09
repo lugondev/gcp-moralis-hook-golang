@@ -62,6 +62,21 @@ func (r *router) mapEmailContract(c echo.Context) error {
 	return c.JSON(http.StatusOK, mappedEmailContract)
 }
 
+func (r *router) getContractByAddress(c echo.Context) error {
+	contractAddress := c.Param("address")
+	if !common.IsHexAddress(contractAddress) {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"message": "address is not a valid address",
+		})
+	}
+
+	contractByAddress, err := r.SQLStore.GetContractByAddress(context.Background(), contractAddress)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	return c.JSON(http.StatusOK, contractByAddress)
+}
+
 func (r *router) listEmailsSubscription(c echo.Context) error {
 	contractId := c.Param("contractId")
 	parseInt, err := strconv.Atoi(contractId)

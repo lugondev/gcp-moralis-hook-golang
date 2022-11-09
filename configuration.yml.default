@@ -31,5 +31,6 @@ email:
     debug: true
     apiKey:
 notifier:
+  adapter: slack
   slack:
     webhookUrl:

@@ -87,7 +87,7 @@ WITH inserted_data AS (
         INTO emails_contract
             (email_id, contract_id)
             VALUES ($1, $2) RETURNING id, email_id, contract_id, created_at)
-SELECT inserted_data.id, email_id, contract_id, inserted_data.created_at, emails.id, emails.name, email, emails.created_at, contracts.id, contracts.name, is_contract, chain_id, address, network, contracts.created_at
+SELECT inserted_data.id, email_id, contract_id, inserted_data.created_at, emails.id, emails.name, email, emails.created_at, contracts.id, contracts.name, is_contract, chain_id, notification, address, network, contracts.created_at
 FROM inserted_data
          INNER JOIN emails ON inserted_data.email_id = emails.id
          INNER JOIN contracts ON inserted_data.contract_id = contracts.id
@@ -101,21 +101,22 @@ type MapEmailContractParams struct {
 }
 
 type MapEmailContractRow struct {
-	ID          int64     `json:"id"`
-	EmailID     int64     `json:"email_id"`
-	ContractID  int64     `json:"contract_id"`
-	CreatedAt   time.Time `json:"created_at"`
-	ID_2        int64     `json:"id_2"`
-	Name        string    `json:"name"`
-	Email       string    `json:"email"`
-	CreatedAt_2 time.Time `json:"created_at_2"`
-	ID_3        int64     `json:"id_3"`
-	Name_2      string    `json:"name_2"`
-	IsContract  bool      `json:"is_contract"`
-	ChainID     string    `json:"chain_id"`
-	Address     string    `json:"address"`
-	Network     string    `json:"network"`
-	CreatedAt_3 time.Time `json:"created_at_3"`
+	ID           int64              `json:"id"`
+	EmailID      int64              `json:"email_id"`
+	ContractID   int64              `json:"contract_id"`
+	CreatedAt    time.Time          `json:"created_at"`
+	ID_2         int64              `json:"id_2"`
+	Name         string             `json:"name"`
+	Email        string             `json:"email"`
+	CreatedAt_2  time.Time          `json:"created_at_2"`
+	ID_3         int64              `json:"id_3"`
+	Name_2       string             `json:"name_2"`
+	IsContract   bool               `json:"is_contract"`
+	ChainID      string             `json:"chain_id"`
+	Notification NotificationStatus `json:"notification"`
+	Address      string             `json:"address"`
+	Network      string             `json:"network"`
+	CreatedAt_3  time.Time          `json:"created_at_3"`
 }
 
 func (q *Queries) MapEmailContract(ctx context.Context, arg MapEmailContractParams) (MapEmailContractRow, error) {
@@ -134,6 +135,7 @@ func (q *Queries) MapEmailContract(ctx context.Context, arg MapEmailContractPara
 		&i.Name_2,
 		&i.IsContract,
 		&i.ChainID,
+		&i.Notification,
 		&i.Address,
 		&i.Network,
 		&i.CreatedAt_3,

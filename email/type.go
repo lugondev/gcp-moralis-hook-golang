@@ -2,7 +2,6 @@ package email
 
 type Client interface {
 	Send(message Message) error
-	SendMultiple(recipients []Recipient, message Message) error
 }
 
 type Sender struct {

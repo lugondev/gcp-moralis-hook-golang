@@ -16,9 +16,3 @@ func (c *mockClient) Send(message Message) error {
 
 	return nil
 }
-
-func (c *mockClient) SendMultiple(recipients []Recipient, message Message) error {
-	log.Println(message)
-
-	return nil
-}

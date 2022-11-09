@@ -30,10 +30,15 @@ auth:
 
 email:
   adapter: sendgrid
+  notifier: true
   sendgrid:
     debug: true
     apiKey: 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
 
 notifier:
+  adapter: telegram
   slack:
     webhookUrl: https://hooks.slack.com/services/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
+  telegram:
+    apiToken: 1811342761:AAHzbgEtdrKcovVevYOmSTSL_pTZXF8AmWQ
+    chatId: -511707279

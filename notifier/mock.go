@@ -11,6 +11,8 @@ func NewMock() Notifier {
 type mockClient struct {
 }
 
-func (c *mockClient) Notify(message Message) {
+func (c *mockClient) Notify(message Message) error {
 	log.Println(message)
+
+	return nil
 }

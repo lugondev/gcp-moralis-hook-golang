@@ -10,17 +10,18 @@ import (
 )
 
 const addContract = `-- name: AddContract :one
-INSERT INTO contracts (name, network, address, is_contract, chain_id)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, name, is_contract, chain_id, address, network, created_at
+INSERT INTO contracts (name, network, address, is_contract, chain_id, notification)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, name, is_contract, chain_id, notification, address, network, created_at
 `
 
 type AddContractParams struct {
-	Name       string `json:"name"`
-	Network    string `json:"network"`
-	Address    string `json:"address"`
-	IsContract bool   `json:"is_contract"`
-	ChainID    string `json:"chain_id"`
+	Name         string             `json:"name"`
+	Network      string             `json:"network"`
+	Address      string             `json:"address"`
+	IsContract   bool               `json:"is_contract"`
+	ChainID      string             `json:"chain_id"`
+	Notification NotificationStatus `json:"notification"`
 }
 
 func (q *Queries) AddContract(ctx context.Context, arg AddContractParams) (Contract, error) {
@@ -30,6 +31,7 @@ func (q *Queries) AddContract(ctx context.Context, arg AddContractParams) (Contr
 		arg.Address,
 		arg.IsContract,
 		arg.ChainID,
+		arg.Notification,
 	)
 	var i Contract
 	err := row.Scan(
@@ -37,6 +39,7 @@ func (q *Queries) AddContract(ctx context.Context, arg AddContractParams) (Contr
 		&i.Name,
 		&i.IsContract,
 		&i.ChainID,
+		&i.Notification,
 		&i.Address,
 		&i.Network,
 		&i.CreatedAt,
@@ -56,7 +59,7 @@ func (q *Queries) DeleteContract(ctx context.Context, id int64) error {
 }
 
 const getContract = `-- name: GetContract :one
-SELECT id, name, is_contract, chain_id, address, network, created_at
+SELECT id, name, is_contract, chain_id, notification, address, network, created_at
 FROM contracts
 WHERE id = $1
 LIMIT 1
@@ -70,6 +73,7 @@ func (q *Queries) GetContract(ctx context.Context, id int64) (Contract, error) {
 		&i.Name,
 		&i.IsContract,
 		&i.ChainID,
+		&i.Notification,
 		&i.Address,
 		&i.Network,
 		&i.CreatedAt,
@@ -78,20 +82,21 @@ func (q *Queries) GetContract(ctx context.Context, id int64) (Contract, error) {
 }
 
 const getContractByAddress = `-- name: GetContractByAddress :one
-SELECT id, name, is_contract, chain_id, address, network, created_at
+SELECT id, name, is_contract, chain_id, notification, address, network, created_at
 FROM contracts
 WHERE LOWER(address) = LOWER($1)
 LIMIT 1
 `
 
-func (q *Queries) GetContractByAddress(ctx context.Context, lower string) (Contract, error) {
-	row := q.db.QueryRowContext(ctx, getContractByAddress, lower)
+func (q *Queries) GetContractByAddress(ctx context.Context, address string) (Contract, error) {
+	row := q.db.QueryRowContext(ctx, getContractByAddress, address)
 	var i Contract
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.IsContract,
 		&i.ChainID,
+		&i.Notification,
 		&i.Address,
 		&i.Network,
 		&i.CreatedAt,
@@ -100,7 +105,7 @@ func (q *Queries) GetContractByAddress(ctx context.Context, lower string) (Contr
 }
 
 const listContracts = `-- name: ListContracts :many
-SELECT id, name, is_contract, chain_id, address, network, created_at
+SELECT id, name, is_contract, chain_id, notification, address, network, created_at
 FROM contracts
 ORDER BY id
 LIMIT $1 OFFSET $2
@@ -125,6 +130,7 @@ func (q *Queries) ListContracts(ctx context.Context, arg ListContractsParams) ([
 			&i.Name,
 			&i.IsContract,
 			&i.ChainID,
+			&i.Notification,
 			&i.Address,
 			&i.Network,
 			&i.CreatedAt,
@@ -187,11 +193,10 @@ func (q *Queries) ListTokensInContract(ctx context.Context, arg ListTokensInCont
 }
 
 const updateContract = `-- name: UpdateContract :one
-
 UPDATE contracts
 SET name = $2
 WHERE id = $1
-RETURNING id, name, is_contract, chain_id, address, network, created_at
+RETURNING id, name, is_contract, chain_id, notification, address, network, created_at
 `
 
 type UpdateContractParams struct {
@@ -199,11 +204,6 @@ type UpdateContractParams struct {
 	Name string `json:"name"`
 }
 
-// -- name: ListTokensInContractByAddress :many
-// SELECT *
-// FROM tokens_contract
-// WHERE contract_id = $3
-// LIMIT $1 OFFSET $2;
 func (q *Queries) UpdateContract(ctx context.Context, arg UpdateContractParams) (Contract, error) {
 	row := q.db.QueryRowContext(ctx, updateContract, arg.ID, arg.Name)
 	var i Contract
@@ -212,6 +212,35 @@ func (q *Queries) UpdateContract(ctx context.Context, arg UpdateContractParams) 
 		&i.Name,
 		&i.IsContract,
 		&i.ChainID,
+		&i.Notification,
+		&i.Address,
+		&i.Network,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateNotificationContract = `-- name: UpdateNotificationContract :one
+UPDATE contracts
+SET notification = $2
+WHERE id = $1
+RETURNING id, name, is_contract, chain_id, notification, address, network, created_at
+`
+
+type UpdateNotificationContractParams struct {
+	ID           int64              `json:"id"`
+	Notification NotificationStatus `json:"notification"`
+}
+
+func (q *Queries) UpdateNotificationContract(ctx context.Context, arg UpdateNotificationContractParams) (Contract, error) {
+	row := q.db.QueryRowContext(ctx, updateNotificationContract, arg.ID, arg.Notification)
+	var i Contract
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.IsContract,
+		&i.ChainID,
+		&i.Notification,
 		&i.Address,
 		&i.Network,
 		&i.CreatedAt,

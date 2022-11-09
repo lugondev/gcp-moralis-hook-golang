@@ -16,7 +16,7 @@ type Querier interface {
 	DeleteEmail(ctx context.Context, id int64) error
 	DeleteToken(ctx context.Context, id int64) error
 	GetContract(ctx context.Context, id int64) (Contract, error)
-	GetContractByAddress(ctx context.Context, lower string) (Contract, error)
+	GetContractByAddress(ctx context.Context, address string) (Contract, error)
 	GetEmail(ctx context.Context, id int64) (Email, error)
 	GetEmailForContract(ctx context.Context, contractID int64) ([]EmailsContract, error)
 	ListContracts(ctx context.Context, arg ListContractsParams) ([]Contract, error)
@@ -25,13 +25,9 @@ type Querier interface {
 	ListEmailsSubscriptionByAddress(ctx context.Context, contractaddress string) ([]Email, error)
 	ListTokensInContract(ctx context.Context, arg ListTokensInContractParams) ([]TokensContract, error)
 	MapEmailContract(ctx context.Context, arg MapEmailContractParams) (MapEmailContractRow, error)
-	// -- name: ListTokensInContractByAddress :many
-	// SELECT *
-	// FROM tokens_contract
-	// WHERE contract_id = $3
-	// LIMIT $1 OFFSET $2;
 	UpdateContract(ctx context.Context, arg UpdateContractParams) (Contract, error)
 	UpdateEmail(ctx context.Context, arg UpdateEmailParams) (Email, error)
+	UpdateNotificationContract(ctx context.Context, arg UpdateNotificationContractParams) (Contract, error)
 }
 
 var _ Querier = (*Queries)(nil)

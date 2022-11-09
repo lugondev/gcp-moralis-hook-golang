@@ -1,2 +1,4 @@
 DROP TABLE IF EXISTS emails;
 DROP TABLE IF EXISTS contracts;
+
+DROP TYPE IF EXISTS notification_status CASCADE;

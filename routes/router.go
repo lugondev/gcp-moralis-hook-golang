@@ -1,12 +1,17 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"moralis-webhook/db"
+	"moralis-webhook/eth"
+	"moralis-webhook/notifier"
+	"net/http"
 )
 
 type router struct {
 	*db.SQLStore
+	notifier *notifier.Notifier
 }
 
 type (
@@ -26,10 +31,24 @@ type (
 	}
 )
 
-func NewRouter(e *echo.Echo, store *db.SQLStore) {
+func NewRouter(e *echo.Echo, store *db.SQLStore, notifier *notifier.Notifier) {
 	router := &router{
 		store,
+		notifier,
 	}
+
+	e.POST("/chain/:chainId", func(c echo.Context) error {
+		chainId := c.Param("chainId")
+		chain, err := eth.GetChainInfoByChainId(chainId)
+		if err != nil {
+			fmt.Println("cannot get chain info: ", err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		return c.JSON(http.StatusOK, chain)
+	})
+
+	testRouter := e.Group("/test")
+	testRouter.POST("/telegram", router.sendTelegram)
 
 	emailRouter := e.Group("/email")
 	emailRouter.POST("/add", router.addEmail)
@@ -41,4 +60,5 @@ func NewRouter(e *echo.Echo, store *db.SQLStore) {
 	contractRouter.POST("/map-email", router.mapEmailContract)
 	contractRouter.GET("/subscriptions/:contractId", router.listEmailsSubscription)
 	contractRouter.GET("/subscriptions-by-address/:address", router.listEmailsSubscriptionByAddress)
+	contractRouter.GET("/contract-by-address/:address", router.getContractByAddress)
 }

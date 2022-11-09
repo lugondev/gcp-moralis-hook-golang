@@ -1,7 +1,7 @@
 package notifier
 
 type Notifier interface {
-	Notify(message Message)
+	Notify(message Message) error
 }
 
 type Message struct {

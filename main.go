@@ -8,8 +8,8 @@ import (
 	"log"
 	"moralis-webhook/config"
 	"moralis-webhook/email"
-	"moralis-webhook/eth"
 	"moralis-webhook/moralis"
+	"moralis-webhook/notifier"
 	"moralis-webhook/routes"
 	"net/http"
 )
@@ -30,7 +30,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func init() {
-	fmt.Printf("GIT log: %s\n", GitCommitLog)
+	log.Printf("GIT log: %s\n", GitCommitLog)
 	config.LoadConfiguration()
 }
 
@@ -42,9 +42,14 @@ func main() {
 
 	appConfig := config.GetAppConfig()
 
-	emailClient, err := email.NewEmailClient()
+	newNotifier, err := notifier.NewNotifier()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to create Notifier client: %v", err)
+	}
+
+	emailClient, err := email.NewEmailClient(&newNotifier)
+	if err != nil {
+		log.Fatalf("failed to create Email client: %v", err)
 	}
 
 	// Echo instance
@@ -65,18 +70,9 @@ func main() {
 		return c.String(http.StatusOK, fmt.Sprintf("GIT log: %s\n", GitCommitLog))
 	})
 	e.POST("/webhook-multisig/:contract", moralis.Hook(emailClient))
-	e.POST("/chain/:chainId", func(c echo.Context) error {
-		chainId := c.Param("chainId")
-		chain, err := eth.GetChainInfoByChainId(chainId)
-		if err != nil {
-			fmt.Println("cannot get chain info:", err)
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-		}
-		return c.JSON(http.StatusOK, chain)
-	})
 
 	// Init routers
-	routes.NewRouter(e, dbStore)
+	routes.NewRouter(e, dbStore, &newNotifier)
 	// Start server
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", appConfig.GetServerPort())))
 }

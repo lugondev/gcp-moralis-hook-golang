@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/spf13/viper"
 	"log"
+	"moralis-webhook/notifier"
 )
 
 type Adapter string
@@ -16,11 +17,12 @@ const (
 
 type Config struct {
 	Adapter  Adapter
+	Notifier bool
 	Sendgrid SendgridConfig
 	Mailjet  MailjetConfig
 }
 
-func NewEmailClient() (Client, error) {
+func NewEmailClient(notifier *notifier.Notifier) (Client, error) {
 	var config Config
 	err := viper.UnmarshalKey("email", &config)
 	if err != nil {
@@ -33,7 +35,11 @@ func NewEmailClient() (Client, error) {
 		return NewMock(), nil
 	case Sendgrid:
 		log.Println("Initialize Sendgrid Email Client")
-		return NewSendgrid(config.Sendgrid), nil
+		if config.Notifier {
+			return NewSendgrid(config.Sendgrid, notifier), nil
+		} else {
+			return NewSendgrid(config.Sendgrid, nil), nil
+		}
 	case Mailjet:
 		log.Println("Initialize Mailjet Email Client")
 		return NewMailjet(config.Mailjet), nil

@@ -17,7 +17,7 @@ const (
 type Config struct {
 	Adapter  Adapter
 	Slack    SlackConfig
-	Telegram string
+	Telegram TelegramConfig
 }
 
 func NewNotifier() (Notifier, error) {
@@ -35,7 +35,8 @@ func NewNotifier() (Notifier, error) {
 		log.Println("Initialize Slack notifier")
 		return NewSlack(config.Slack), nil
 	case Telegram:
-		return nil, errors.New("telegram not available")
+		log.Println("Initialize Telegram notifier")
+		return NewTelegram(config.Telegram), nil
 	default:
 		return nil, errors.New("unable to find adapter")
 	}

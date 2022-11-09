@@ -10,19 +10,21 @@ type SlackConfig struct {
 }
 
 func NewSlack(configuration SlackConfig) *SlackClient {
-	return &SlackClient{webhookUrl: configuration.WebhookUrl}
+	return &SlackClient{configuration}
 }
 
 type SlackClient struct {
-	webhookUrl string
+	config SlackConfig
 }
 
-func (c *SlackClient) Notify(message Message) {
+func (c *SlackClient) Notify(message Message) error {
 	webhook := slack.WebhookMessage{
 		Text: message.Content,
 	}
 
-	if err := slack.PostWebhook(c.webhookUrl, &webhook); err != nil {
+	if err := slack.PostWebhook(c.config.WebhookUrl, &webhook); err != nil {
 		log.Error(err)
+		return err
 	}
+	return nil
 }

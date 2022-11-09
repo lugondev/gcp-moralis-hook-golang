@@ -22,10 +22,6 @@ type mailjetClient struct {
 	debug  bool
 }
 
-func (c *mailjetClient) SendMultiple(recipients []Recipient, message Message) error {
-	return nil
-}
-
 func (c *mailjetClient) Send(message Message) error {
 	info := []mailjet.InfoMessagesV31{
 		{
