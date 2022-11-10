@@ -8,7 +8,12 @@ import (
 	"moralis-webhook/db"
 )
 
-type DBConfig struct {
+const (
+	profileKey = "db.profile"
+	profileEnv = "DB_PROFILE"
+)
+
+type PostgresConfig struct {
 	Host     string
 	Port     int
 	DBName   string
@@ -27,15 +32,29 @@ type DBConfig struct {
 	}
 }
 
+type DBConfig struct {
+	Profile    string
+	Postgresql PostgresConfig
+}
+
+func init() {
+	_ = viper.BindEnv(profileKey, profileEnv)
+}
+
 func NewDB() (*db.SQLStore, error) {
 	var config DBConfig
-	if err := viper.UnmarshalKey("db.postgresql.primary", &config); err != nil {
+	var postgresConfig PostgresConfig
+	if err := viper.UnmarshalKey("db", &config); err != nil {
 		panic(err)
 	}
-
-	dsn := getDSN(config)
-	if config.Logger.LogLevel != "info" {
-		fmt.Println("db dsn:", dsn)
+	var dsn string
+	if config.Profile != "" {
+		if err := viper.UnmarshalKey(fmt.Sprintf("db.%s", config.Profile), &postgresConfig); err != nil {
+			panic(err)
+		}
+		dsn = getDSN(postgresConfig)
+	} else {
+		dsn = getDSN(config.Postgresql)
 	}
 
 	openDB, err := sql.Open("postgres", dsn)
@@ -46,7 +65,7 @@ func NewDB() (*db.SQLStore, error) {
 	return db.NewStore(openDB), nil
 }
 
-func getDSN(configuration DBConfig) string {
+func getDSN(configuration PostgresConfig) string {
 	return fmt.Sprintf(
 		"host=%s port=%d dbname=%s user=%s password=%s sslmode=%s TimeZone=%s",
 		configuration.Host,

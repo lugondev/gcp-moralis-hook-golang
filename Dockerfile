@@ -8,6 +8,7 @@ RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -
 
 WORKDIR /app
 # Copy the binary to the production image from the builder stage.
+COPY ./configuration.yml ./configuration.yml
 COPY ./email/template ./email/template
 COPY ./chains ./chains
 COPY ./build/server ./server

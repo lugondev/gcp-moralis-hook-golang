@@ -10,28 +10,27 @@ import (
 )
 
 const addContract = `-- name: AddContract :one
-INSERT INTO contracts (name, network, address, is_contract, chain_id, notification)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, name, is_contract, chain_id, notification, address, network, created_at
+INSERT INTO contracts (name, network, address, is_contract, chain_id)
+VALUES ($1, $2, LOWER($5), $3, $4) ON CONFLICT (address) DO
+UPDATE SET name = $1, network = $2, is_contract = $3, chain_id = $4
+    RETURNING id, name, is_contract, chain_id, notification, address, network, created_at
 `
 
 type AddContractParams struct {
-	Name         string             `json:"name"`
-	Network      string             `json:"network"`
-	Address      string             `json:"address"`
-	IsContract   bool               `json:"is_contract"`
-	ChainID      string             `json:"chain_id"`
-	Notification NotificationStatus `json:"notification"`
+	Name       string `json:"name"`
+	Network    string `json:"network"`
+	IsContract bool   `json:"is_contract"`
+	ChainID    string `json:"chain_id"`
+	Address    string `json:"address"`
 }
 
 func (q *Queries) AddContract(ctx context.Context, arg AddContractParams) (Contract, error) {
 	row := q.db.QueryRowContext(ctx, addContract,
 		arg.Name,
 		arg.Network,
-		arg.Address,
 		arg.IsContract,
 		arg.ChainID,
-		arg.Notification,
+		arg.Address,
 	)
 	var i Contract
 	err := row.Scan(
@@ -61,8 +60,7 @@ func (q *Queries) DeleteContract(ctx context.Context, id int64) error {
 const getContract = `-- name: GetContract :one
 SELECT id, name, is_contract, chain_id, notification, address, network, created_at
 FROM contracts
-WHERE id = $1
-LIMIT 1
+WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetContract(ctx context.Context, id int64) (Contract, error) {
@@ -84,8 +82,7 @@ func (q *Queries) GetContract(ctx context.Context, id int64) (Contract, error) {
 const getContractByAddress = `-- name: GetContractByAddress :one
 SELECT id, name, is_contract, chain_id, notification, address, network, created_at
 FROM contracts
-WHERE LOWER(address) = LOWER($1)
-LIMIT 1
+WHERE LOWER(address) = LOWER($1) LIMIT 1
 `
 
 func (q *Queries) GetContractByAddress(ctx context.Context, address string) (Contract, error) {
@@ -107,8 +104,8 @@ func (q *Queries) GetContractByAddress(ctx context.Context, address string) (Con
 const listContracts = `-- name: ListContracts :many
 SELECT id, name, is_contract, chain_id, notification, address, network, created_at
 FROM contracts
-ORDER BY id
-LIMIT $1 OFFSET $2
+ORDER BY id LIMIT $1
+OFFSET $2
 `
 
 type ListContractsParams struct {
@@ -149,10 +146,10 @@ func (q *Queries) ListContracts(ctx context.Context, arg ListContractsParams) ([
 }
 
 const listTokensInContract = `-- name: ListTokensInContract :many
-SELECT id, contract_id, name, symbol, address, decimals, updated_at
+SELECT id, contract_id, name, symbol, token, decimals, updated_at
 FROM tokens_contract
-WHERE contract_id = $3
-LIMIT $1 OFFSET $2
+WHERE contract_id = $3 LIMIT $1
+OFFSET $2
 `
 
 type ListTokensInContractParams struct {
@@ -175,7 +172,7 @@ func (q *Queries) ListTokensInContract(ctx context.Context, arg ListTokensInCont
 			&i.ContractID,
 			&i.Name,
 			&i.Symbol,
-			&i.Address,
+			&i.Token,
 			&i.Decimals,
 			&i.UpdatedAt,
 		); err != nil {
@@ -195,8 +192,7 @@ func (q *Queries) ListTokensInContract(ctx context.Context, arg ListTokensInCont
 const updateContract = `-- name: UpdateContract :one
 UPDATE contracts
 SET name = $2
-WHERE id = $1
-RETURNING id, name, is_contract, chain_id, notification, address, network, created_at
+WHERE id = $1 RETURNING id, name, is_contract, chain_id, notification, address, network, created_at
 `
 
 type UpdateContractParams struct {
@@ -223,8 +219,7 @@ func (q *Queries) UpdateContract(ctx context.Context, arg UpdateContractParams) 
 const updateNotificationContract = `-- name: UpdateNotificationContract :one
 UPDATE contracts
 SET notification = $2
-WHERE id = $1
-RETURNING id, name, is_contract, chain_id, notification, address, network, created_at
+WHERE id = $1 RETURNING id, name, is_contract, chain_id, notification, address, network, created_at
 `
 
 type UpdateNotificationContractParams struct {

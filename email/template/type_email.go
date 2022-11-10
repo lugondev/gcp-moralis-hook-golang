@@ -13,6 +13,7 @@ type Erc20Transfer struct {
 	Tx          string `json:"tx"`
 	From        string `json:"from"`
 	To          string `json:"to"`
+	Contract    string `json:"contract"`
 	Amount      string `json:"amount"`
 	TokenName   string `json:"tokenName"`
 	TokenSymbol string `json:"tokenSymbol"`

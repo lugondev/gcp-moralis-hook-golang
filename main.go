@@ -69,7 +69,7 @@ func main() {
 	e.GET("/git", func(c echo.Context) error {
 		return c.String(http.StatusOK, fmt.Sprintf("GIT log: %s\n", GitCommitLog))
 	})
-	e.POST("/webhook-multisig/:contract", moralis.Hook(emailClient))
+	e.POST("/webhook-multisig/:contract", moralis.Hook(dbStore, emailClient, newNotifier))
 
 	// Init routers
 	routes.NewRouter(e, dbStore, &newNotifier)

@@ -7,30 +7,102 @@ package db
 
 import (
 	"context"
-	"time"
 )
 
-const listEmailsSubscription = `-- name: ListEmailsSubscription :many
-SELECT emails.id, emails.name, emails.email, emails.created_at
-FROM emails_contract
-         JOIN emails ON emails_contract.email_id = emails.id
+const addTokenToContract = `-- name: AddTokenToContract :one
+INSERT INTO tokens_contract (contract_id, name, symbol, token, decimals)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, contract_id, name, symbol, token, decimals, updated_at
+`
+
+type AddTokenToContractParams struct {
+	ContractID int64  `json:"contract_id"`
+	Name       string `json:"name"`
+	Symbol     string `json:"symbol"`
+	Token      string `json:"token"`
+	Decimals   int64  `json:"decimals"`
+}
+
+func (q *Queries) AddTokenToContract(ctx context.Context, arg AddTokenToContractParams) (TokensContract, error) {
+	row := q.db.QueryRowContext(ctx, addTokenToContract,
+		arg.ContractID,
+		arg.Name,
+		arg.Symbol,
+		arg.Token,
+		arg.Decimals,
+	)
+	var i TokensContract
+	err := row.Scan(
+		&i.ID,
+		&i.ContractID,
+		&i.Name,
+		&i.Symbol,
+		&i.Token,
+		&i.Decimals,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const addTokenToContractByAddress = `-- name: AddTokenToContractByAddress :one
+INSERT
+INTO tokens_contract (contract_id, name, symbol, token, decimals)
+VALUES ((SELECT id as contract_id FROM contracts WHERE LOWER(address) = LOWER($4)), $1, $2, LOWER($5), $3)
+RETURNING id, contract_id, name, symbol, token, decimals, updated_at
+`
+
+type AddTokenToContractByAddressParams struct {
+	Name     string `json:"name"`
+	Symbol   string `json:"symbol"`
+	Decimals int64  `json:"decimals"`
+	Address  string `json:"address"`
+	Token    string `json:"token"`
+}
+
+func (q *Queries) AddTokenToContractByAddress(ctx context.Context, arg AddTokenToContractByAddressParams) (TokensContract, error) {
+	row := q.db.QueryRowContext(ctx, addTokenToContractByAddress,
+		arg.Name,
+		arg.Symbol,
+		arg.Decimals,
+		arg.Address,
+		arg.Token,
+	)
+	var i TokensContract
+	err := row.Scan(
+		&i.ID,
+		&i.ContractID,
+		&i.Name,
+		&i.Symbol,
+		&i.Token,
+		&i.Decimals,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const listTokenInContract = `-- name: ListTokenInContract :many
+SELECT id, contract_id, name, symbol, token, decimals, updated_at
+FROM tokens_contract
 WHERE contract_id = $1
 `
 
-func (q *Queries) ListEmailsSubscription(ctx context.Context, contractid int64) ([]Email, error) {
-	rows, err := q.db.QueryContext(ctx, listEmailsSubscription, contractid)
+func (q *Queries) ListTokenInContract(ctx context.Context, contractID int64) ([]TokensContract, error) {
+	rows, err := q.db.QueryContext(ctx, listTokenInContract, contractID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Email{}
+	items := []TokensContract{}
 	for rows.Next() {
-		var i Email
+		var i TokensContract
 		if err := rows.Scan(
 			&i.ID,
+			&i.ContractID,
 			&i.Name,
-			&i.Email,
-			&i.CreatedAt,
+			&i.Symbol,
+			&i.Token,
+			&i.Decimals,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -45,28 +117,31 @@ func (q *Queries) ListEmailsSubscription(ctx context.Context, contractid int64) 
 	return items, nil
 }
 
-const listEmailsSubscriptionByAddress = `-- name: ListEmailsSubscriptionByAddress :many
-SELECT emails.id, emails.name, emails.email, emails.created_at
-FROM contracts
-         JOIN emails_contract ON emails_contract.contract_id = contracts.id
-         JOIN emails ON emails_contract.email_id = emails.id
-WHERE contracts.address = $1
+const listTokenInContractByAddress = `-- name: ListTokenInContractByAddress :many
+SELECT id, contract_id, name, symbol, token, decimals, updated_at
+FROM tokens_contract
+WHERE contract_id = (SELECT id
+                     FROM contracts
+                     WHERE LOWER(address) = LOWER($1))
 `
 
-func (q *Queries) ListEmailsSubscriptionByAddress(ctx context.Context, contractaddress string) ([]Email, error) {
-	rows, err := q.db.QueryContext(ctx, listEmailsSubscriptionByAddress, contractaddress)
+func (q *Queries) ListTokenInContractByAddress(ctx context.Context, address string) ([]TokensContract, error) {
+	rows, err := q.db.QueryContext(ctx, listTokenInContractByAddress, address)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Email{}
+	items := []TokensContract{}
 	for rows.Next() {
-		var i Email
+		var i TokensContract
 		if err := rows.Scan(
 			&i.ID,
+			&i.ContractID,
 			&i.Name,
-			&i.Email,
-			&i.CreatedAt,
+			&i.Symbol,
+			&i.Token,
+			&i.Decimals,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -81,64 +156,38 @@ func (q *Queries) ListEmailsSubscriptionByAddress(ctx context.Context, contracta
 	return items, nil
 }
 
-const mapEmailContract = `-- name: MapEmailContract :one
-WITH inserted_data AS (
-    INSERT
-        INTO emails_contract
-            (email_id, contract_id)
-            VALUES ($1, $2) RETURNING id, email_id, contract_id, created_at)
-SELECT inserted_data.id, email_id, contract_id, inserted_data.created_at, emails.id, emails.name, email, emails.created_at, contracts.id, contracts.name, is_contract, chain_id, notification, address, network, contracts.created_at
-FROM inserted_data
-         INNER JOIN emails ON inserted_data.email_id = emails.id
-         INNER JOIN contracts ON inserted_data.contract_id = contracts.id
-WHERE contracts.id = inserted_data.contract_id
-  AND emails.id = inserted_data.email_id
+const removeTokenFromContract = `-- name: RemoveTokenFromContract :exec
+DELETE
+FROM tokens_contract
+WHERE contract_id = $1
+  AND LOWER(token) = LOWER($2)
 `
 
-type MapEmailContractParams struct {
-	EmailID    int64 `json:"email_id"`
-	ContractID int64 `json:"contract_id"`
+type RemoveTokenFromContractParams struct {
+	ContractID int64  `json:"contract_id"`
+	Token      string `json:"token"`
 }
 
-type MapEmailContractRow struct {
-	ID           int64              `json:"id"`
-	EmailID      int64              `json:"email_id"`
-	ContractID   int64              `json:"contract_id"`
-	CreatedAt    time.Time          `json:"created_at"`
-	ID_2         int64              `json:"id_2"`
-	Name         string             `json:"name"`
-	Email        string             `json:"email"`
-	CreatedAt_2  time.Time          `json:"created_at_2"`
-	ID_3         int64              `json:"id_3"`
-	Name_2       string             `json:"name_2"`
-	IsContract   bool               `json:"is_contract"`
-	ChainID      string             `json:"chain_id"`
-	Notification NotificationStatus `json:"notification"`
-	Address      string             `json:"address"`
-	Network      string             `json:"network"`
-	CreatedAt_3  time.Time          `json:"created_at_3"`
+func (q *Queries) RemoveTokenFromContract(ctx context.Context, arg RemoveTokenFromContractParams) error {
+	_, err := q.db.ExecContext(ctx, removeTokenFromContract, arg.ContractID, arg.Token)
+	return err
 }
 
-func (q *Queries) MapEmailContract(ctx context.Context, arg MapEmailContractParams) (MapEmailContractRow, error) {
-	row := q.db.QueryRowContext(ctx, mapEmailContract, arg.EmailID, arg.ContractID)
-	var i MapEmailContractRow
-	err := row.Scan(
-		&i.ID,
-		&i.EmailID,
-		&i.ContractID,
-		&i.CreatedAt,
-		&i.ID_2,
-		&i.Name,
-		&i.Email,
-		&i.CreatedAt_2,
-		&i.ID_3,
-		&i.Name_2,
-		&i.IsContract,
-		&i.ChainID,
-		&i.Notification,
-		&i.Address,
-		&i.Network,
-		&i.CreatedAt_3,
-	)
-	return i, err
+const removeTokenFromContractByAddress = `-- name: RemoveTokenFromContractByAddress :exec
+DELETE
+FROM tokens_contract
+WHERE contract_id = (SELECT id
+                     FROM contracts
+                     WHERE LOWER(address) = LOWER($1))
+  AND LOWER(token) = LOWER($2)
+`
+
+type RemoveTokenFromContractByAddressParams struct {
+	Address string `json:"address"`
+	Token   string `json:"token"`
+}
+
+func (q *Queries) RemoveTokenFromContractByAddress(ctx context.Context, arg RemoveTokenFromContractByAddressParams) error {
+	_, err := q.db.ExecContext(ctx, removeTokenFromContractByAddress, arg.Address, arg.Token)
+	return err
 }

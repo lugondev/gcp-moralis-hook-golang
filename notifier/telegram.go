@@ -3,6 +3,7 @@ package notifier
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
+	"sync"
 )
 
 type TelegramConfig struct {
@@ -25,15 +26,24 @@ type TelegramClient struct {
 	bot    *tgbotapi.BotAPI
 }
 
+func (c *TelegramClient) notify(message Message) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+
+		msg := tgbotapi.NewMessage(c.config.ChatId, message.Content)
+		msg.ParseMode = tgbotapi.ModeHTML
+
+		_, err := c.bot.Send(msg)
+		if err != nil {
+			log.Println("Unable to send message telegram:", err)
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+}
+
 func (c *TelegramClient) Notify(message Message) error {
-	msg := tgbotapi.NewMessage(c.config.ChatId, message.Content)
-	msg.ParseMode = tgbotapi.ModeHTML
-
-	_, err := c.bot.Send(msg)
-	if err != nil {
-		log.Println("Unable to send message telegram:", err)
-		return err
-	}
-
+	go c.notify(message)
 	return nil
 }

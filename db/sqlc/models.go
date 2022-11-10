@@ -82,7 +82,7 @@ type TokensContract struct {
 	ContractID int64     `json:"contract_id"`
 	Name       string    `json:"name"`
 	Symbol     string    `json:"symbol"`
-	Address    string    `json:"address"`
+	Token      string    `json:"token"`
 	Decimals   int64     `json:"decimals"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }
