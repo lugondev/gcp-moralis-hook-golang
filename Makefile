@@ -17,7 +17,6 @@ build-linux:
 
 deploy: clean build-linux
 	gcloud run deploy --source . --region asia-southeast1 --project ${GCP_PROJECT}; \
-	echo "Done deploy."
 
 clean:
 	rm -fr "${PATH_BUILT}"; \
@@ -30,7 +29,7 @@ dev: build
 	./build/server-local
 
 server:
-	go run main.go
+	env MULTISIG_DB_PROFILE=$(DB_PROFILE) go run main.go
 
 migrate-up:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
+	"log"
 	"moralis-webhook/db"
 )
 
@@ -49,6 +50,7 @@ func NewDB() (*db.SQLStore, error) {
 	}
 	var dsn string
 	if config.Profile != "" {
+		log.Println("Using DB profile:", config.Profile)
 		if err := viper.UnmarshalKey(fmt.Sprintf("db.%s", config.Profile), &postgresConfig); err != nil {
 			panic(err)
 		}

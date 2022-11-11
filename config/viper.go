@@ -28,7 +28,7 @@ func readFile() {
 }
 
 func readEnvironment() {
-	viper.SetEnvPrefix("WAAS")
+	viper.SetEnvPrefix("MULTISIG")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 }

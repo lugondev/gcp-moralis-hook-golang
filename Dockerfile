@@ -12,6 +12,7 @@ COPY ./configuration.yml ./configuration.yml
 COPY ./email/template ./email/template
 COPY ./chains ./chains
 COPY ./build/server ./server
+ENV MULTISIG_DB_PROFILE postgresql.primary
 
 #RUN ls -alh .
 # Run the web service on container startup.
