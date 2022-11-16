@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"waas-service/dto"
+	"moralis-webhook/dto"
 )
 
 type CustomClaims struct {

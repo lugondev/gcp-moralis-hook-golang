@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"moralis-webhook/db"
+	"time"
 )
 
 const (
@@ -63,6 +64,11 @@ func NewDB() (*db.SQLStore, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	openDB.SetConnMaxIdleTime(time.Duration(postgresConfig.ConnectionMaxIdleTime) * time.Minute)
+	openDB.SetConnMaxLifetime(time.Duration(postgresConfig.ConnectionMaxLifetime) * time.Minute)
+	openDB.SetMaxIdleConns(postgresConfig.MaxIdleConnections)
+	openDB.SetMaxOpenConns(postgresConfig.MaxOpenConnections)
 
 	return db.NewStore(openDB), nil
 }

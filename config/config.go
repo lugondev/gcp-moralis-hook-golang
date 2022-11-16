@@ -42,3 +42,7 @@ func (a *AppConfig) GetAuth0Config() *Auth0Config {
 func (a *AppConfig) GetServerPort() int {
 	return a.port
 }
+
+func (a *AppConfig) GetOIDCConfig() *OIDCConfig {
+	return a.auth0.oidc
+}

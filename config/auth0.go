@@ -78,7 +78,3 @@ func NewAuth0Config() *Auth0Config {
 
 	return auth0Config
 }
-
-func (a *Auth0Config) GetOIDCConfig() *OIDCConfig {
-	return a.oidc
-}

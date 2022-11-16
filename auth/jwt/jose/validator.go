@@ -3,15 +3,15 @@ package jose
 import (
 	"context"
 	"fmt"
+	"moralis-webhook/auth/utils"
 	"moralis-webhook/config"
+	"moralis-webhook/dto"
 	"net/url"
 	"strings"
 
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/labstack/gommon/log"
-	"waas-service/auth/utils"
-	"waas-service/dto"
 )
 
 type Validator struct {
@@ -19,7 +19,7 @@ type Validator struct {
 }
 
 func NewValidator() (*Validator, error) {
-	cfg := config.GetOIDCConfig()
+	cfg := config.GetAppConfig().GetOIDCConfig()
 	issuerURL, err := url.Parse(cfg.Issuer)
 	if err != nil {
 		return nil, err
