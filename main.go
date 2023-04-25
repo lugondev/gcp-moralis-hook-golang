@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"log"
 	"moralis-webhook/config"
-	"moralis-webhook/email"
 	"moralis-webhook/moralis"
 	"moralis-webhook/notifier"
 	"moralis-webhook/routes"
@@ -34,6 +34,12 @@ func init() {
 	config.LoadConfiguration()
 }
 
+const RpcUrl = "https://arb-mainnet.g.alchemy.com/v2/5yyYIuYGR_6hYQ6YVoThlQoabPZyimN9"
+
+//const RpcUrl = "https://nameless-multi-tent.arbitrum-mainnet.discover.quiknode.pro/26e310d6e5af40e43af753866a314e779353cc8d/"
+
+//const RpcUrl = "https://arbitrum-mainnet.infura.io/v3/26a2d6b5e2d2446c95ccf258f1f81f24"
+
 func main() {
 	dbStore, err := config.NewDB()
 	if err != nil {
@@ -47,10 +53,10 @@ func main() {
 		log.Fatalf("failed to create Notifier client: %v", err)
 	}
 
-	emailClient, err := email.NewEmailClient(&newNotifier)
-	if err != nil {
-		log.Fatalf("failed to create Email client: %v", err)
-	}
+	//emailClient, err := email.NewEmailClient(&newNotifier)
+	//if err != nil {
+	//	log.Fatalf("failed to create Email client: %v", err)
+	//}
 
 	// Echo instance
 	e := echo.New()
@@ -69,7 +75,11 @@ func main() {
 	e.GET("/git", func(c echo.Context) error {
 		return c.String(http.StatusOK, fmt.Sprintf("GIT log: %s\n", GitCommitLog))
 	})
-	e.POST("/webhook-multisig/:contract", moralis.Hook(dbStore, emailClient, newNotifier))
+	client, err := ethclient.Dial(RpcUrl)
+	if err != nil {
+		return
+	}
+	e.POST("/webhook-multisig/:contract", moralis.Hook(client, newNotifier))
 
 	// Init routers
 	routes.NewRouter(e, dbStore, &newNotifier)

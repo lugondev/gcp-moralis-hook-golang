@@ -15,16 +15,16 @@ import (
 func (r *router) addContract(c echo.Context) error {
 	var data NewContractRequest
 	if err := c.Bind(&data); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	if err := c.Validate(data); err != nil {
 		fmt.Println("error:", err)
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	chain, err := eth.GetChainInfoByChainId(strconv.FormatInt(data.ChainId, 10))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	isContract := eth.IsContract(lo.Sample[string](chain.Rpc), common.HexToAddress(data.Address))
 
@@ -36,7 +36,7 @@ func (r *router) addContract(c echo.Context) error {
 		IsContract: isContract,
 	})
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, addContract)
 }
@@ -44,19 +44,19 @@ func (r *router) addContract(c echo.Context) error {
 func (r *router) removeTokenFromContractByAddress(c echo.Context) error {
 	var data RemoveTokenFromContractRequest
 	if err := c.Bind(&data); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	if err := c.Validate(data); err != nil {
 		fmt.Println("error:", err)
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	if err := r.SQLStore.RemoveTokenFromContractByAddress(context.Background(), sqlc.RemoveTokenFromContractByAddressParams{
 		Address: data.Address,
 		Token:   data.Token,
 	}); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, data)
@@ -65,12 +65,12 @@ func (r *router) removeTokenFromContractByAddress(c echo.Context) error {
 func (r *router) mapEmailContract(c echo.Context) error {
 	var data NewMapEmailContract
 	if err := c.Bind(&data); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	if err := c.Validate(data); err != nil {
 		fmt.Println("error:", err)
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	mappedEmailContract, err := r.SQLStore.MapEmailContract(context.Background(), sqlc.MapEmailContractParams{
@@ -78,7 +78,7 @@ func (r *router) mapEmailContract(c echo.Context) error {
 		ContractID: data.ContractId,
 	})
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, mappedEmailContract)
 }
@@ -86,14 +86,14 @@ func (r *router) mapEmailContract(c echo.Context) error {
 func (r *router) getContractByAddress(c echo.Context) error {
 	contractAddress := c.Param("address")
 	if !common.IsHexAddress(contractAddress) {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"message": "address is not a valid address",
+		return echo.NewHTTPError(http.StatusBadRequest, map[string]string{
+			"message": "address is invalid",
 		})
 	}
 
 	contractByAddress, err := r.SQLStore.GetContractByAddress(context.Background(), contractAddress)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, contractByAddress)
 }
@@ -101,14 +101,14 @@ func (r *router) getContractByAddress(c echo.Context) error {
 func (r *router) listTokensInContractByAddress(c echo.Context) error {
 	contractAddress := c.Param("address")
 	if !common.IsHexAddress(contractAddress) {
-		return c.JSON(http.StatusBadRequest, map[string]string{
+		return echo.NewHTTPError(http.StatusBadRequest, map[string]string{
 			"message": "address is not a valid address",
 		})
 	}
 
 	contractByAddress, err := r.SQLStore.ListTokenInContractByAddress(context.Background(), contractAddress)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, contractByAddress)
 }
@@ -117,13 +117,13 @@ func (r *router) listEmailsSubscription(c echo.Context) error {
 	contractId := c.Param("contractId")
 	parseInt, err := strconv.Atoi(contractId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
+		return echo.NewHTTPError(http.StatusBadRequest, map[string]string{
 			"message": "contract id is not a number",
 		})
 	}
 	mappedEmailContract, err := r.SQLStore.ListEmailsSubscription(context.Background(), int64(parseInt))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, mappedEmailContract)
 }
@@ -131,13 +131,13 @@ func (r *router) listEmailsSubscription(c echo.Context) error {
 func (r *router) listEmailsSubscriptionByAddress(c echo.Context) error {
 	contractAddress := c.Param("address")
 	if !common.IsHexAddress(contractAddress) {
-		return c.JSON(http.StatusBadRequest, map[string]string{
+		return echo.NewHTTPError(http.StatusBadRequest, map[string]string{
 			"message": "address is not a valid address",
 		})
 	}
 	mappedEmailContract, err := r.SQLStore.ListEmailsSubscriptionByAddress(context.Background(), contractAddress)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, mappedEmailContract)
 }
@@ -153,7 +153,7 @@ func (r *router) listContracts(c echo.Context) error {
 		Offset: int32(offset),
 	})
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, listContracts)
 }

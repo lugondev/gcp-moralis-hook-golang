@@ -12,7 +12,6 @@ import (
 
 const (
 	profileKey = "db.profile"
-	profileEnv = "DB_PROFILE"
 )
 
 type PostgresConfig struct {
@@ -37,10 +36,6 @@ type PostgresConfig struct {
 type DBConfig struct {
 	Profile    string
 	Postgresql PostgresConfig
-}
-
-func init() {
-	_ = viper.BindEnv(profileKey, profileEnv)
 }
 
 func NewDB() (*db.SQLStore, error) {

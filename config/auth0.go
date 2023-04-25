@@ -8,20 +8,14 @@ import (
 
 const (
 	issuerKey     = "auth.jwt.issuer"
-	issuerEnv     = "AUTH_ISSUER"
 	audienceKey   = "auth.jwt.audience"
-	audienceEnv   = "AUTH_AUDIENCE"
 	claimsPathKey = "auth.jwt.claimsPath"
-	claimsPathEnv = "AUTH_CLAIMS_PATH"
 )
 
 const (
 	domainAuth0Key       = "auth.auth0.domain"
-	domainAuth0Env       = "AUTH0_DOMAIN"
 	clientIdAuth0Key     = "auth.auth0.clientId"
-	clientIdAuth0Env     = "AUTH0_CLIENT_ID"
 	clientSecretAuth0Key = "auth.auth0.clientSecret"
-	clientSecretAuth0Env = "AUTH0_CLIENT_SECRET"
 )
 
 type OIDCConfig struct {
@@ -36,16 +30,6 @@ type Auth0Config struct {
 	ClientId     string
 	ClientSecret string
 	oidc         *OIDCConfig
-}
-
-func init() {
-	_ = viper.BindEnv(issuerKey, issuerEnv)
-	_ = viper.BindEnv(audienceKey, audienceEnv)
-	_ = viper.BindEnv(claimsPathKey, claimsPathEnv)
-
-	_ = viper.BindEnv(domainAuth0Key, domainAuth0Env)
-	_ = viper.BindEnv(clientIdAuth0Key, clientIdAuth0Env)
-	_ = viper.BindEnv(clientSecretAuth0Key, clientSecretAuth0Env)
 }
 
 func NewAuth0Config() *Auth0Config {

@@ -9,16 +9,22 @@ import (
 )
 
 type Querier interface {
+	AddChain(ctx context.Context, arg AddChainParams) (Chain, error)
 	AddContract(ctx context.Context, arg AddContractParams) (Contract, error)
 	AddEmail(ctx context.Context, arg AddEmailParams) (Email, error)
+	AddPrivateKey(ctx context.Context, arg AddPrivateKeyParams) (PrivateKey, error)
 	AddTokenToContract(ctx context.Context, arg AddTokenToContractParams) (TokensContract, error)
 	AddTokenToContractByAddress(ctx context.Context, arg AddTokenToContractByAddressParams) (TokensContract, error)
 	DeleteContract(ctx context.Context, id int64) error
 	DeleteEmail(ctx context.Context, id int64) error
+	GetChain(ctx context.Context, chainID int64) (Chain, error)
 	GetContract(ctx context.Context, id int64) (Contract, error)
 	GetContractByAddress(ctx context.Context, address string) (Contract, error)
 	GetEmail(ctx context.Context, id int64) (Email, error)
 	GetEmailForContract(ctx context.Context, contractID int64) ([]EmailsContract, error)
+	GetPrivateKey(ctx context.Context, address string) (PrivateKey, error)
+	ListAddresses(ctx context.Context) ([]string, error)
+	ListChains(ctx context.Context) ([]Chain, error)
 	ListContracts(ctx context.Context, arg ListContractsParams) ([]Contract, error)
 	ListEmails(ctx context.Context, arg ListEmailsParams) ([]Email, error)
 	ListEmailsSubscription(ctx context.Context, contractid int64) ([]Email, error)

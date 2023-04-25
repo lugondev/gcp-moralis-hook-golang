@@ -15,6 +15,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/slack-go/slack v0.11.4
 	github.com/spf13/viper v1.13.0
+	github.com/thoas/go-funk v0.9.1
 	google.golang.org/grpc v1.46.2
 )
 

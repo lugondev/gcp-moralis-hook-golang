@@ -52,6 +52,14 @@ func (ns NullNotificationStatus) Value() (driver.Value, error) {
 	return ns.NotificationStatus, nil
 }
 
+type Chain struct {
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	Rpcs      []string  `json:"rpcs"`
+	ChainID   int64     `json:"chain_id"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type Contract struct {
 	ID           int64              `json:"id"`
 	Name         string             `json:"name"`
@@ -75,6 +83,13 @@ type EmailsContract struct {
 	EmailID    int64     `json:"email_id"`
 	ContractID int64     `json:"contract_id"`
 	CreatedAt  time.Time `json:"created_at"`
+}
+
+type PrivateKey struct {
+	ID         int64     `json:"id"`
+	PrivateKey string    `json:"private_key"`
+	Address    string    `json:"address"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 type TokensContract struct {

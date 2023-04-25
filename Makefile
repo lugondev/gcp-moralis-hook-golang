@@ -16,7 +16,7 @@ build-linux:
 	env GOOS=linux GOARCH=amd64 go build -v -o ./build/server -ldflags "-X 'main.GitCommitLog=${GIT_COMMIT_LOG}'"
 
 deploy: clean build-linux
-	gcloud run deploy --source . --region asia-southeast1 --project ${GCP_PROJECT}; \
+	gcloud run deploy gcp-run-multisig-ac --source . --region asia-southeast1 --project ${GCP_PROJECT}; \
 
 clean:
 	rm -fr "${PATH_BUILT}"; \
@@ -29,7 +29,7 @@ dev: build
 	./build/server-local
 
 server:
-	env MULTISIG_DB_PROFILE=$(DB_PROFILE) go run main.go
+	go run main.go
 
 migrate-up:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up

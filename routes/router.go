@@ -70,4 +70,11 @@ func NewRouter(e *echo.Echo, store *db.SQLStore, notifier *notifier.Notifier) {
 	contractRouter.GET("/contract-by-address/:address", router.getContractByAddress)
 	contractRouter.GET("/tokens-by-address/:address", router.listTokensInContractByAddress)
 	contractRouter.DELETE("/remove-token", router.removeTokenFromContractByAddress)
+
+	evmRouter := e.Group("/evm")
+	evmRouter.GET("/chains", router.listChains)
+	evmRouter.GET("/chain/:chainId", router.getChain)
+	evmRouter.GET("/addresses", router.listAddresses)
+	evmRouter.GET("/address/:address", router.listAddresses)
+	evmRouter.POST("/sign-transact/:address", router.signAndTransact)
 }
